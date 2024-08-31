@@ -7,18 +7,18 @@ const port = 3000;
 // Dummy products and customer orders for boox clothing
 const fakeDatabase = {
     orders: {
-        "1": { id: "1", product_id: "201", status: "shipped", delivery_date: "2024-09-01" },
-        "2": { id: "2", product_id: "202", status: "processing", delivery_date: null },
-        "3": { id: "3", product_id: "203", status: "delivered", delivery_date: "2024-08-25" },
-        "4": { id: "4", product_id: "204", status: "canceled", delivery_date: null },
-        "5": { id: "5", product_id: "205", status: "processing", delivery_date: null },
-        "6": { id: "6", product_id: "206", status: "shipped", delivery_date: "2024-09-02" },
-        "7": { id: "7", product_id: "207", status: "delivered", delivery_date: "2024-08-30" },
-        "8": { id: "8", product_id: "208", status: "processing", delivery_date: null },
-        "9": { id: "9", product_id: "209", status: "shipped", delivery_date: "2024-09-03" },
-        "10": { id: "10", product_id: "210", status: "canceled", delivery_date: null },
-        "11": { id: "11", product_id: "211", status: "processing", delivery_date: null },
-        "12": { id: "12", product_id: "212", status: "delivered", delivery_date: "2024-08-28" }
+        "1": { id: "1", product_ids: ["201", "202"], total_price: 330, status: "shipped", delivery_date: "2024-09-01" },
+        "2": { id: "2", product_ids: ["203"], total_price: 90, status: "processing", delivery_date: null },
+        "3": { id: "3", product_ids: ["204", "205"], total_price: 120, status: "delivered", delivery_date: "2024-08-25" },
+        "4": { id: "4", product_ids: ["206"], total_price: 45, status: "canceled", delivery_date: null },
+        "5": { id: "5", product_ids: ["207", "208", "209"], total_price: 90, status: "processing", delivery_date: null },
+        "6": { id: "6", product_ids: ["210"], total_price: 200, status: "shipped", delivery_date: "2024-09-02" },
+        "7": { id: "7", product_ids: ["211", "212"], total_price: 205, status: "delivered", delivery_date: "2024-08-30" },
+        "8": { id: "8", product_ids: ["213", "214"], total_price: 120, status: "processing", delivery_date: null },
+        "9": { id: "9", product_ids: ["215"], total_price: 50, status: "shipped", delivery_date: "2024-09-03" },
+        "10": { id: "10", product_ids: ["201", "202", "203"], total_price: 320, status: "canceled", delivery_date: null },
+        "11": { id: "11", product_ids: ["204", "205"], total_price: 120, status: "processing", delivery_date: null },
+        "12": { id: "12", product_ids: ["206", "207"], total_price: 75, status: "delivered", delivery_date: "2024-08-28" }
     },
     products: {
         "201": { id: "201", name: "Men's Parka Jacket", price: 150, category: "Men's Winter Clothing" },
@@ -38,6 +38,7 @@ const fakeDatabase = {
         "215": { id: "215", name: "Kids' Snow Pants", price: 50, category: "Kids' Winter Clothing" }
     }
 };
+
 
 
 app.use(express.json());
@@ -66,7 +67,7 @@ app.post('/webhook', (req, res) => {
             response = cancelOrderById(schemaData.orderId);
             break;
         case "create_order":
-            response = createOrder(schemaData.productName);
+            response = createOrder(schemaData.products);
             break;
         case "search_products_by_name":
             response = searchProductsByName(schemaData.searchName);
@@ -112,21 +113,28 @@ const cancelOrderById = (orderId) => {
     return null;
 };
 
-const createOrder = (productName) => {
-    const product = Object.values(fakeDatabase.products).find(p => p.name.toLowerCase() === productName.toLowerCase());
+const createOrder = (productNames) => {
+    const productIds = productNames.map(productName => {
+        const product = Object.values(fakeDatabase.products).find(p => p.name.toLowerCase() === productName.toLowerCase());
+        return product ? product.id : null;
+    }).filter(id => id !== null);
 
-    if (product) {
+    if (productIds.length > 0) {
         const newOrderId = uuidv4();
+        const productsInOrder = productIds.map(id => fakeDatabase.products[id]);
+        const totalPrice = productsInOrder.reduce((sum, product) => sum + product.price, 0);
+
         const newOrder = {
             id: newOrderId,
-            product_id: product.id,
+            product_ids: productIds,
+            total_price: totalPrice,
             status: "processing",
             delivery_date: null
         };
         fakeDatabase.orders[newOrderId] = newOrder;
         return { message: "Order created", order: newOrder };
     } else {
-        return { message: "Product not found, cannot create order." };
+        return { message: "No valid products found, cannot create order." };
     }
 };
 
