@@ -67,7 +67,7 @@ app.post('/webhook', (req, res) => {
             response = cancelOrderById(schemaData.orderId);
             break;
         case "create_order":
-            response = createOrder(schemaData.products);
+            response = createOrder(schemaData.productNames);
             break;
         case "search_products_by_name":
             response = searchProductsByName(schemaData.searchName);
@@ -115,7 +115,7 @@ const cancelOrderById = (orderId) => {
 
 const createOrder = (productNames) => {
     const productIds = productNames.map(productName => {
-        const product = Object.values(fakeDatabase.products).find(p => p.name.toLowerCase() === productName.toLowerCase());
+        const product = Object.values(fakeDatabase.products).find(p => p.name.toLowerCase().includes(productName.toLowerCase()));
         return product ? product.id : null;
     }).filter(id => id !== null);
 
