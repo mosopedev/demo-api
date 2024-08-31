@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const port = 3000;
 
-const fakeDatabase = {
+const fakeDatabase = { // configure your own database
     orders: {
         "1": { id: "1", product_id: "101", status: "shipped", delivery_date: "2024-09-01" },
         "2": { id: "2", product_id: "102", status: "processing", delivery_date: null },
@@ -22,6 +22,7 @@ const fakeDatabase = {
 
 app.use(express.json());
 
+// webhook url provided when configuring your business agent
 app.post('/webhook', (req, res) => {
     const { action, schemaData } = req.body;
 
@@ -61,7 +62,7 @@ app.post('/webhook', (req, res) => {
     }
 });
 
-
+// Methods to execute the actions
 const getOrderById = (orderId) => {
     return fakeDatabase.orders[orderId] || null;
 };
