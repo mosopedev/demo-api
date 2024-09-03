@@ -43,6 +43,10 @@ const fakeDatabase = {
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+    return res.status(200)
+})
+
 // webhook url provided when configuring your business agent
 app.post('/webhook', (req, res) => {
     const { action, schemaData } = req.body;
