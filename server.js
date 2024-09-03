@@ -44,7 +44,7 @@ const fakeDatabase = {
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    return res.status(200)
+    return res.status(200).json({status: 'active'})
 })
 
 // webhook url provided when configuring your business agent
